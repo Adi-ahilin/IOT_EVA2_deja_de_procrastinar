@@ -24,25 +24,24 @@ Componentización: La interfaz se construye a partir de widgets pequeños y reut
 📁 Estructura del Proyecto
 La estructura de carpetas está organizada para facilitar la navegación y la escalabilidad del proyecto.
 
-lib/ 
-├── main.dart # Punto de entrada de la aplicación 
-|
-├── models/ 
-│ └── tarea_model.dart # Modelo de datos para una Tarea 
-| 
-├── providers/ 
-│ └── tareas_provider.dart # Lógica de negocio y gestión del estado 
-| 
-├── screens/ 
-│ ├── login_screen.dart # Pantalla de inicio de sesión 
-│ └── tareas_screen.dart # Pantalla principal que muestra la lista de tareas 
-| 
-└── widgets/ 
-├── filter_chips.dart # Widget para los chips de filtrado 
-├── new_task_fab.dart # Widget para el Floating Action Button 
-├── search_field.dart # Widget para el campo de búsqueda 
-└── tarea_card.dart # Widget que muestra una tarea individual
+### 📖 Estructura del Proyecto
 
+La estructura de carpetas está organizada para facilitar la navegación y la escalabilidad del proyecto:
+
+- **lib/** (Contiene todo el código fuente de la aplicación)
+    - **main.dart** (Punto de entrada de la aplicación)
+    - **models/**
+        - `tarea_model.dart` (Modelo de datos para una Tarea)
+    - **providers/**
+        - `tareas_provider.dart` (Lógica de negocio y gestión del estado)
+    - **screens/**
+        - `login_screen.dart` (Pantalla de inicio de sesión)
+        - `tareas_screen.dart` (Pantalla principal que muestra la lista de tareas)
+    - **widgets/**
+        - `filter_chips.dart` (Widget para los chips de filtrado)
+        - `new_task_fab.dart` (Widget para el Floating Action Button)
+        - `search_field.dart` (Widget para el campo de búsqueda)
+        - `tarea_card.dart` (Widget que muestra una tarea individual)
 ⚙️ Cómo Ejecutar el Proyecto
 Sigue estos pasos para tener una copia del proyecto funcionando en tu máquina local.
 
