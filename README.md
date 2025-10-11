@@ -42,26 +42,25 @@ La estructura de carpetas está organizada para facilitar la navegación y la es
         - `new_task_fab.dart` (Widget para el Floating Action Button)
         - `search_field.dart` (Widget para el campo de búsqueda)
         - `tarea_card.dart` (Widget que muestra una tarea individual)
+     
+      
 ⚙️ Cómo Ejecutar el Proyecto
 Sigue estos pasos para tener una copia del proyecto funcionando en tu máquina local.
 
 Pre-requisitos
 Asegúrate de tener el SDK de Flutter instalado en tu computadora. Si no lo tienes, sigue la guía oficial de instalación.
 
-Instalación y Ejecución
-Clona el repositorio:
+Instalación y Ejecución:
 
-git clone https://github.com/Adi-ahilin/IOT_EVA2_deja_de_procrastinar.git
-Navega al directorio del proyecto:
+-Clona el repositorio: git clone https://github.com/Adi-ahilin/IOT_EVA2_deja_de_procrastinar.git
 
-cd procrastination_app
-Instala las dependencias:
+-Navega al directorio del proyecto: cd procrastination_app
 
-flutter pub get
-Ejecuta la aplicación:
+-Instala las dependencias: flutter pub get
 
-flutter run
-La aplicación se iniciará en tu emulador o dispositivo físico conectado.
+-Ejecuta la aplicación: flutter run
+
+-La aplicación se iniciará en tu emulador o dispositivo físico conectado.
 
 🌟 Posibles Mejoras a Futuro
 Este proyecto es una excelente base que puede ser extendida con nuevas funcionalidades:
