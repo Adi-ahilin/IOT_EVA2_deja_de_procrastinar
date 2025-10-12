@@ -1,6 +1,9 @@
+// lib/screens/tareas_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/tareas_provider.dart';
+import '../widgets/empty_state.dart'; // Importamos el nuevo widget
 import '../widgets/tarea_card.dart';
 import '../widgets/search_field.dart';
 import '../widgets/filter_chips.dart';
@@ -89,52 +92,52 @@ class TareasScreen extends StatelessWidget {
             onFilterChanged: (filtro) => tareasProvider.cambiarFiltro(filtro),
           ),
           Expanded(
-            child: ListView.builder(
-              itemCount: tareasProvider.tareasFiltradas.length,
-              itemBuilder: (context, index) {
-                final tarea = tareasProvider.tareasFiltradas[index];
-
-                return Dismissible(
-                  key: ValueKey(tarea),
-                  onDismissed: (direction) {
-                    final posicionOriginal = tareasProvider.eliminarTarea(
-                      tarea,
-                    );
-
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('${tarea.title} (eliminada)'),
-                        action: SnackBarAction(
-                          label: 'DESHACER',
-                          onPressed: () {
-                            if (posicionOriginal != -1) {
-                              tareasProvider.reinsertarTarea(
-                                posicionOriginal,
-                                tarea,
-                              );
-                            }
-                          },
+            // --- LÓGICA DEL ESTADO VACÍO AÑADIDA AQUÍ ---
+            child: tareasProvider.tareasFiltradas.isEmpty
+                ? const EmptyState() // Si no hay tareas, muestra el mensaje amigable
+                : ListView.builder(
+                    // Si hay tareas, muestra la lista
+                    itemCount: tareasProvider.tareasFiltradas.length,
+                    itemBuilder: (context, index) {
+                      final tarea = tareasProvider.tareasFiltradas[index];
+                      return Dismissible(
+                        key: ValueKey(tarea),
+                        onDismissed: (direction) {
+                          final posicionOriginal = tareasProvider.eliminarTarea(
+                            tarea,
+                          );
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('${tarea.title} (eliminada)'),
+                              action: SnackBarAction(
+                                label: 'DESHACER',
+                                onPressed: () {
+                                  if (posicionOriginal != -1) {
+                                    tareasProvider.reinsertarTarea(
+                                      posicionOriginal,
+                                      tarea,
+                                    );
+                                  }
+                                },
+                              ),
+                            ),
+                          );
+                        },
+                        background: Container(
+                          color: Colors.red,
+                          alignment: Alignment.centerRight,
+                          padding: const EdgeInsets.only(right: 20.0),
+                          child: const Icon(Icons.delete, color: Colors.white),
                         ),
-                      ),
-                    );
-                  },
-                  background: Container(
-                    color: Colors.red,
-                    alignment: Alignment.centerRight,
-                    padding: const EdgeInsets.only(right: 20.0),
-                    child: const Icon(Icons.delete, color: Colors.white),
+                        direction: DismissDirection.endToStart,
+                        child: TareaCard(
+                          tarea: tarea,
+                          onCheckboxChanged: (_) =>
+                              tareasProvider.toggleEstadoTarea(tarea),
+                        ),
+                      );
+                    },
                   ),
-                  direction: DismissDirection.endToStart,
-                  // ¡MIRA QUÉ LIMPIO QUEDA AHORA!
-                  // La pantalla ya no se preocupa por los estilos.
-                  child: TareaCard(
-                    tarea: tarea,
-                    onCheckboxChanged: (_) =>
-                        tareasProvider.toggleEstadoTarea(tarea),
-                  ),
-                );
-              },
-            ),
           ),
         ],
       ),
