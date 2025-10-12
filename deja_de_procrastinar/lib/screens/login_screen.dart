@@ -48,7 +48,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Image.network(
-                    'https://i.ibb.co/bJCbf6m/procrastinate-icon.png',
+                    'https://i.ibb.co/JRgV1bwm/Deja-de-procastinar.png',
                     height: 150,
                     fit: BoxFit.contain,
                   ),
@@ -65,8 +65,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       if (value == null || value.trim().isEmpty) {
                         return 'Por favor, ingresa tu correo';
                       }
-                      if (!value.contains('@')) {
-                        return 'El formato del correo no es válido';
+                      final emailRegex = RegExp(
+                        r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+                      );
+                      if (!emailRegex.hasMatch(value)) {
+                        return 'Por favor, ingresa un correo válido';
                       }
                       return null;
                     },
