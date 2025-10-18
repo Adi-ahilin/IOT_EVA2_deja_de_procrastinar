@@ -1,63 +1,52 @@
-procrastination_app ✔️
-Deja de Procrastinar: Tu Gestor de Tareas Sencillo y Eficaz
-Una aplicación móvil construida con Flutter para ayudarte a organizar tus tareas diarias, enfocarte en lo importante y, finalmente, dejar de procrastinar.
+p# 🚀 IOT_EVA2_DEJA_DE_PROCRASTINAR
 
-Características Principales
-Este proyecto implementa las funcionalidades esenciales de una aplicación de lista de tareas (To-Do list) con una interfaz limpia y una experiencia de usuario fluida.
+## Aplicación Móvil para IoT: Gestor de Actividades y Trámites
 
-✅ Gestión de Tareas: Añade nuevas tareas, márcalas como "hechas" o "pendientes" con un simple toque.
-🗑️ Eliminación Segura: Borra tareas deslizando y deshaz la acción al instante si cometes un error.
-🔍 Filtrado y Búsqueda Dinámica: Visualiza tus tareas filtrando por Todas, Pendientes o Hechas, y encuentra cualquier tarea al instante con la barra de búsqueda.
-✨ Diseño Limpio: Interfaz minimalista y centrada en la productividad, con un "estado vacío" amigable cuando no hay tareas que mostrar.
-🔒 Login con Validación: Pantalla de inicio de sesión que valida el formato del correo y la longitud de la contraseña.
+Este proyecto es la evaluación sumativa del módulo **Aplicaciones Móviles para IoT**. Se desarrolla una aplicación Flutter funcional que implementa la **autenticación** y la **persistencia de datos en la nube**, simulando un gestor de tareas diarias para el usuario final.
 
+## 1. Características Principales y Cumplimiento de Requisitos
 
-🛠️ Arquitectura y Tecnologías Utilizadas
-Este proyecto fue desarrollado siguiendo las mejores prácticas de Flutter para asegurar un código limpio, escalable y fácil de mantener.
+La aplicación demuestra el cumplimiento de los siguientes requisitos técnicos y funcionales de la evaluación:
 
-Framework: Flutter
-Lenguaje: Dart
-Gestión de Estado: provider con ChangeNotifier. La lógica de negocio y el estado de la aplicación están centralizados en TareasProvider, separando la UI de la lógica de datos.
-Arquitectura por Capas: El código está organizado en models, providers, screens y widgets para una clara división de responsabilidades.
-Componentización: La interfaz se construye a partir de widgets pequeños y reutilizables (TareaCard, FilterChips, SearchField), lo que hace que el código de las pantallas sea declarativo y fácil de leer.
+| Característica | Detalle Funcionalidad | Requisito Clave |
+| :--- | :--- | :--- |
+| **Login y Autenticación** | Implementación de una pantalla de login que valida el formato de correo y la longitud mínima de contraseña. Autenticación real vía **Firebase Auth**. | RF1, RF2, RF3 |
+| **Persistencia de Datos** | Manejo de tareas (Actividades o Trámites) a través de un **CRUD asíncrono completo** conectado a **Firebase Firestore**. | RF10, RF11, RF12 |
+| **Gestión de Listados** | La pantalla principal muestra un listado ordenado por la fecha de entrega y soporta **búsqueda** y **filtros** por estado. | RF8, RF9, RF13 |
+| **Estados Derivados** | Lógica para mostrar estilos visuales según el estado: **Pendiente**, **Completada** (tachado), y **Atrasada/Vencida** (si la fecha pasó sin completar). | RF7 |
+| **Eliminación Segura** | Implementación del *swipe* (`Dismissible`) que incluye un **Snackbar** con la opción **"DESHACER"** (re-creando el registro en Firestore). | RF12 |
 
-📁 Estructura del Proyecto
-La estructura de carpetas está organizada para facilitar la navegación y la escalabilidad del proyecto:
+## 2. 🛠️ Arquitectura y Tecnologías Clave
 
-- **lib/** (Contiene todo el código fuente de la aplicación)
-    - **main.dart** (Punto de entrada de la aplicación)
-    - **models/**
-        - `tarea_model.dart` (Modelo de datos para una Tarea)
-    - **providers/**
-        - `tareas_provider.dart` (Lógica de negocio y gestión del estado)
-    - **screens/**
-        - `login_screen.dart` (Pantalla de inicio de sesión)
-        - `tareas_screen.dart` (Pantalla principal que muestra la lista de tareas)
-    - **widgets/**
-        - `empty_state.dart`   (Widget para cuando no hay tareas)
-        - `filter_chips.dart`  (Widget para los chips de filtrado)
-        - `new_task_fab.dart`  (Widget para el Floating Action Button)
-        - `search_field.dart`  (Widget para el campo de búsqueda)
-        - `tarea_card.dart`    (Widget que muestra una tarea individual)
-          
+La arquitectura del proyecto está diseñada para la escalabilidad, demostrando la interconexión con servicios en la nube:
 
-⚙️ Cómo Ejecutar el Proyecto
-Sigue estos pasos para tener una copia del proyecto funcionando en tu máquina local.
+* **Tecnologías IOT/Nube:**
+    * **Firebase Firestore:** Persistencia de datos (lectura vía `Stream`).
+    * **Firebase Authentication:** Servicio de control de acceso.
+* **Gestión de Estado y Arquitectura:**
+    * **Provider:** Utilizado con `ChangeNotifier` y `ChangeNotifierProxyProvider` para la inyección de dependencias (`Auth` y `Tareas`).
+    * **Repository Pattern:** El código está organizado en `repositories` (conexión a Firebase), consumidos por los `providers` (lógica de negocio).
 
-Pre-requisitos
-Asegúrate de tener el SDK de Flutter instalado en tu computadora. Si no lo tienes, sigue la guía oficial de instalación.
+## 3. 🔑 Guía de Ejecución y Credenciales de Prueba
 
-Instalación y Ejecución
--Clona el repositorio: git clone [https://github.com/Adi-ahilin/IOT_EVA2_deja_de_procrastinar.git](https://github.com/Adi-ahilin/IOT_EVA2_deja_de_procrastinar.git)
--Navega al directorio del proyecto: cd procrastination_app
--Instala las dependencias:flutter pub get
--Ejecuta la aplicación: flutter run
--La aplicación se iniciará en tu emulador, dispositivo físico conectado o navegador web.
+### A. Ejecución del Proyecto
 
-🌟 Posibles Mejoras a Futuro
-Este proyecto es una excelente base que puede ser extendida con nuevas funcionalidades:
--Persistencia de Datos: Guardar las tareas localmente usando shared_preferences o sqflite.
--Autenticación Real: Integrar un servicio como Firebase Authentication.
--Sincronización en la Nube: Usar Firestore para guardar las tareas en la nube.
--Notificaciones: Añadir recordatorios para las tareas con fechas de vencimiento.
--Añadir Fechas de Vencimiento: Implementar un DatePicker al crear o editar una tarea.
+1.  **Clonar y Dependencias:**
+    ```bash
+    git clone [URL_DE_TU_REPOSITORIO]
+    cd IOT_EVA2_deja_de_procrastinar
+    flutter pub get
+    ```
+2.  **Ejecutar:** Ejecute `flutter run` en un dispositivo o navegador.
+
+### B. Credenciales para la Revisión (¡CRUCIAL!)
+
+Para acceder y validar todas las funcionalidades (CRUD, Filtros, Estados), el revisor debe utilizar las siguientes credenciales, ya registradas en el servicio **Firebase Authentication** del proyecto:
+
+| Campo | Valor | Propósito |
+| :--- | :--- | :--- |
+| **Correo Electrónico** | `test@gmail.com` | Usuario de prueba. |
+| **Contraseña** | **[TU_CONTRASEÑA_DE_6_CARACTERES_O_MÁS]** | *Se debe usar la contraseña establecida para este usuario en la consola de Firebase.* |
+
+---
+---
