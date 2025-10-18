@@ -1,5 +1,8 @@
+// lib/screens/login_screen.dart
+
 import 'package:flutter/material.dart';
-import 'tareas_screen.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -13,13 +16,27 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  void _login() {
+  void _login() async {
     if (_formKey.currentState!.validate()) {
-      String userEmail = _emailController.text;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => TareasScreen(email: userEmail)),
-      );
+      final authProvider = context.read<AuthProvider>();
+      String userEmail = _emailController.text.trim();
+      String password = _passwordController.text;
+
+      try {
+        await authProvider.signIn(userEmail, password);
+      } on Exception {
+        // Manejo de Error (RF4)
+
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content:
+                Text('Error de acceso. Por favor, verifica tus credenciales.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -34,47 +51,49 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Deja de Procrastinar'),
+        title: const Text('Ingreso al Sistema'),
         centerTitle: true,
       ),
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
+      body: Center(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(32.0),
             child: Form(
               key: _formKey,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  // Logo (Recuperado)
                   Image.network(
-                    'https://i.ibb.co/JRgV1bwm/Deja-de-procastinar.png',
+                    'https://i.ibb.co/JRgV1bwm/Deja-de-procrastinar.png',
                     height: 150,
                     fit: BoxFit.contain,
                   ),
                   const SizedBox(height: 48),
+
+                  // Campo de Email (RF1)
                   TextFormField(
                     controller: _emailController,
+                    keyboardType: TextInputType.emailAddress,
                     decoration: const InputDecoration(
                       labelText: 'Correo Electrónico',
                       prefixIcon: Icon(Icons.email),
                       border: OutlineInputBorder(),
                     ),
-                    keyboardType: TextInputType.emailAddress,
                     validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
+                      // Validación de email (RF2)
+                      if (value == null || value.isEmpty) {
                         return 'Por favor, ingresa tu correo';
                       }
-                      final emailRegex = RegExp(
-                        r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
-                      );
-                      if (!emailRegex.hasMatch(value)) {
-                        return 'Por favor, ingresa un correo válido';
+                      if (!value.contains('@')) {
+                        return 'Ingresa un correo válido (debe contener "@")';
                       }
                       return null;
                     },
                   ),
                   const SizedBox(height: 20),
+
+                  // Campo de Contraseña (RF1)
                   TextFormField(
                     controller: _passwordController,
                     obscureText: true,
@@ -84,16 +103,19 @@ class _LoginScreenState extends State<LoginScreen> {
                       border: OutlineInputBorder(),
                     ),
                     validator: (value) {
+                      // Validación de contraseña (RF3)
                       if (value == null || value.isEmpty) {
                         return 'Por favor, ingresa tu contraseña';
                       }
                       if (value.length < 6) {
-                        return 'La contraseña debe tener al menos 6 caracteres';
+                        return 'La contraseña debe tener al menos 6 caracteres (RF3)';
                       }
                       return null;
                     },
                   ),
                   const SizedBox(height: 30),
+
+                  // Botón de Ingreso (RF5)
                   ElevatedButton(
                     onPressed: _login,
                     style: ElevatedButton.styleFrom(

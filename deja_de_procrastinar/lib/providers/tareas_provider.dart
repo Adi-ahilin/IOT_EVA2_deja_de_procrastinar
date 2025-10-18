@@ -1,90 +1,106 @@
 // lib/providers/tareas_provider.dart
 
-import 'package:flutter/foundation.dart'; // <-- ¡LA IMPORTACIÓN CLAVE!
+import 'dart:async';
+import 'package:flutter/foundation.dart';
 import '../models/tarea_model.dart';
+import '../repositories/tareas_repository.dart';
 
 enum FilterState { todas, pendientes, hechas }
 
 class TareasProvider with ChangeNotifier {
-  final List<Tarea> _tareasOriginales = [
-    Tarea(
-      title: 'Hacer 30 minutos de ejercicio',
-      dueDate: DateTime(2025, 10, 10),
-    ),
-    Tarea(title: 'Ordenar el escritorio', dueDate: DateTime(2025, 10, 13)),
-    Tarea(
-      title: 'Empezar a leer ese libro',
-      dueDate: DateTime(2025, 10, 9),
-      isDone: true,
-    ),
-    Tarea(title: 'Llamar a mamá', dueDate: DateTime(2025, 10, 31)),
-    Tarea(title: 'Planificar la semana', isDone: true),
-  ];
+  final TareasRepository _tareasRepository;
+  final String _userId;
 
-  List<Tarea> _tareasFiltradas = [];
+  List<Tarea> _tareas = [];
   String _searchQuery = '';
   FilterState _filtroActivo = FilterState.todas;
 
-  List<Tarea> get tareasFiltradas => _tareasFiltradas;
-  FilterState get filtroActivo => _filtroActivo;
+  StreamSubscription<List<Tarea>>? _tareasSubscription;
 
-  TareasProvider() {
-    _filtrarTareas();
+  // CONSTRUCTOR CON ARGUMENTOS NOMBRADOS (¡Sincronizado con main.dart!)
+  TareasProvider(
+      {required String userId, required TareasRepository tareasRepository})
+      : _userId = userId,
+        _tareasRepository = tareasRepository {
+    _startListeningToTasks();
   }
 
-  void _filtrarTareas() {
-    List<Tarea> tempLista = [];
+  void _startListeningToTasks() {
+    // RF6 y RF13: Suscribe al Stream que obtiene las tareas ORDENADAS de Firebase
+    _tareasSubscription =
+        _tareasRepository.getTareasStream(_userId).listen((tareas) {
+      _tareas = tareas;
+      notifyListeners();
+    });
+  }
+
+  @override
+  void dispose() {
+    _tareasSubscription?.cancel();
+    super.dispose();
+  }
+
+  // GETTER MODIFICADO: Aplica el filtrado/búsqueda sobre la lista _tareas (de Firebase)
+  List<Tarea> get tareasFiltradas {
+    List<Tarea> tempLista = List.from(_tareas);
+
+    // 1. Aplicar filtro de estado (RF9)
     if (_filtroActivo == FilterState.pendientes) {
-      tempLista = _tareasOriginales.where((e) => !e.isDone).toList();
+      tempLista = tempLista.where((e) => !e.isDone).toList();
     } else if (_filtroActivo == FilterState.hechas) {
-      tempLista = _tareasOriginales.where((e) => e.isDone).toList();
-    } else {
-      tempLista = List.from(_tareasOriginales);
+      tempLista = tempLista.where((e) => e.isDone).toList();
     }
 
+    // 2. Aplicar búsqueda (RF8)
     if (_searchQuery.isNotEmpty) {
       tempLista = tempLista
           .where((tarea) => tarea.title.toLowerCase().contains(_searchQuery))
           .toList();
     }
-    _tareasFiltradas = tempLista;
-    notifyListeners();
+
+    return tempLista;
   }
+
+  FilterState get filtroActivo => _filtroActivo;
 
   void actualizarBusqueda(String query) {
     _searchQuery = query.toLowerCase();
-    _filtrarTareas();
+    notifyListeners();
   }
 
   void cambiarFiltro(FilterState nuevoFiltro) {
     _filtroActivo = nuevoFiltro;
-    _filtrarTareas();
+    notifyListeners();
   }
 
-  void anadirTarea(String titulo) {
-    final nuevaTarea = Tarea(title: titulo);
-    _tareasOriginales.add(nuevaTarea);
-    _filtrarTareas();
+  // RF11: AÑADIR TAREA (ASÍNCRONA con Firebase)
+  Future<void> anadirTarea(String titulo, {DateTime? dueDate}) async {
+    final nuevaTarea = Tarea(title: titulo, dueDate: dueDate);
+    await _tareasRepository.anadirTarea(_userId, nuevaTarea);
   }
 
-  int eliminarTarea(Tarea tarea) {
-    // El provider busca el índice en su propia lista privada.
-    final index = _tareasOriginales.indexOf(tarea);
-    if (index != -1) {
-      // Nos aseguramos de que la tarea exista
-      _tareasOriginales.removeAt(index);
-      _filtrarTareas();
+  // RF12: ELIMINACIÓN (ASÍNCRONA con Firebase)
+  Future<Tarea> eliminarTarea(Tarea tarea) async {
+    if (tarea.id == null) {
+      throw Exception("No se puede eliminar una tarea sin ID de Firebase.");
     }
-    return index; // Devolvemos la posición para la función "Deshacer".
+    await _tareasRepository.eliminarTarea(_userId, tarea.id!);
+    return tarea;
   }
 
-  void reinsertarTarea(int index, Tarea tarea) {
-    _tareasOriginales.insert(index, tarea);
-    _filtrarTareas();
-  }
-
-  void toggleEstadoTarea(Tarea tarea) {
+  // RF10: TOGGLE ESTADO (ASÍNCRONA con Firebase)
+  Future<void> toggleEstadoTarea(Tarea tarea) async {
     tarea.isDone = !tarea.isDone;
-    _filtrarTareas();
+
+    if (tarea.id == null) {
+      return;
+    }
+
+    await _tareasRepository.toggleEstadoTarea(_userId, tarea);
+  }
+
+  // RF12: Función para el 'Undo' (recrear)
+  void reinsertarTarea(int index, Tarea tarea) async {
+    await anadirTarea(tarea.title, dueDate: tarea.dueDate);
   }
 }
