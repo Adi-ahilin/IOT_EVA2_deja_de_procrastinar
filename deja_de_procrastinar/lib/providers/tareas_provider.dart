@@ -22,11 +22,13 @@ class TareasProvider with ChangeNotifier {
       {required String userId, required TareasRepository tareasRepository})
       : _userId = userId,
         _tareasRepository = tareasRepository {
+    // La inicialización se hace aquí, confiando en que el ProxyProvider en main.dart
+    // solo llama a este constructor cuando userId es VÁLIDO.
     _startListeningToTasks();
   }
 
   void _startListeningToTasks() {
-    // RF6 y RF13: Suscribe al Stream que obtiene las tareas ORDENADAS de Firebase
+    // Suscribe al Stream que obtiene las tareas ORDENADAS de Firebase
     _tareasSubscription =
         _tareasRepository.getTareasStream(_userId).listen((tareas) {
       _tareas = tareas;
@@ -40,7 +42,7 @@ class TareasProvider with ChangeNotifier {
     super.dispose();
   }
 
-  // GETTER MODIFICADO: Aplica el filtrado/búsqueda sobre la lista _tareas (de Firebase)
+  // GETTER MODIFICADO: Aplica el filtrado/búsqueda sobre la lista _tareas
   List<Tarea> get tareasFiltradas {
     List<Tarea> tempLista = List.from(_tareas);
 
@@ -58,6 +60,7 @@ class TareasProvider with ChangeNotifier {
           .toList();
     }
 
+    // 3. Devolver lista
     return tempLista;
   }
 
@@ -76,6 +79,7 @@ class TareasProvider with ChangeNotifier {
   // RF11: AÑADIR TAREA (ASÍNCRONA con Firebase)
   Future<void> anadirTarea(String titulo, {DateTime? dueDate}) async {
     final nuevaTarea = Tarea(title: titulo, dueDate: dueDate);
+    // Usa el Repository para guardar en Firestore
     await _tareasRepository.anadirTarea(_userId, nuevaTarea);
   }
 
@@ -84,6 +88,7 @@ class TareasProvider with ChangeNotifier {
     if (tarea.id == null) {
       throw Exception("No se puede eliminar una tarea sin ID de Firebase.");
     }
+    // Usa el Repository para eliminar de Firestore
     await _tareasRepository.eliminarTarea(_userId, tarea.id!);
     return tarea;
   }
@@ -96,11 +101,13 @@ class TareasProvider with ChangeNotifier {
       return;
     }
 
+    // Usa el Repository para actualizar el estado en Firestore
     await _tareasRepository.toggleEstadoTarea(_userId, tarea);
   }
 
   // RF12: Función para el 'Undo' (recrear)
   void reinsertarTarea(int index, Tarea tarea) async {
+    // El 'Undo' vuelve a crear la tarea con sus datos originales
     await anadirTarea(tarea.title, dueDate: tarea.dueDate);
   }
 }

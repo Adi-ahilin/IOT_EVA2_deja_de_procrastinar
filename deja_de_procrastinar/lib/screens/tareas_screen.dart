@@ -10,22 +10,17 @@ import '../widgets/tarea_card.dart';
 import '../widgets/search_field.dart';
 import '../widgets/filter_chips.dart';
 import '../widgets/new_task_fab.dart';
+import 'notas_screen.dart'; // Asegúrate de que este archivo exista
 
-// Es un StatefulWidget para poder usar 'mounted'
-class TareasScreen extends StatefulWidget {
+class TareasScreen extends StatelessWidget {
   const TareasScreen({super.key});
 
-  @override
-  State<TareasScreen> createState() => _TareasScreenState();
-}
-
-class _TareasScreenState extends State<TareasScreen> {
+  // RF11: Muestra el modal para añadir tarea con título, notas y fecha.
   void _mostrarFormularioNuevaTarea(BuildContext context) {
-    final tareasProvider = Provider.of<TareasProvider?>(context, listen: false);
-    if (tareasProvider == null) return;
-
+    final tareasProvider = Provider.of<TareasProvider>(context, listen: false);
     final formKey = GlobalKey<FormState>();
     final tituloController = TextEditingController();
+    final notasController = TextEditingController(); // Controlador para Notas
 
     DateTime? fechaSeleccionada;
 
@@ -40,9 +35,9 @@ class _TareasScreenState extends State<TareasScreen> {
           return Padding(
             padding: EdgeInsets.only(
               bottom: MediaQuery.of(ctx).viewInsets.bottom,
-              top: 24,
-              left: 24,
-              right: 24,
+              left: 20,
+              right: 20,
+              top: 20,
             ),
             child: Form(
               key: formKey,
@@ -51,24 +46,39 @@ class _TareasScreenState extends State<TareasScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    'Añadir Nueva Actividad o Trámite',
+                    'Nueva Actividad/Trámite',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 20),
+                  // TÍTULO (OBLIGATORIO)
                   TextFormField(
                     controller: tituloController,
                     decoration: const InputDecoration(
-                      labelText: 'Nombre de la Actividad o Trámite',
+                      labelText: 'Título de la Actividad (Obligatorio)',
                       border: OutlineInputBorder(),
                     ),
-                    autofocus: true,
-                    validator: (val) => (val == null || val.trim().isEmpty)
-                        ? 'El título es obligatorio'
-                        : null,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'El título es obligatorio';
+                      }
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 20),
+                  // CAMPO DE NOTAS (OPCIONAL)
+                  TextFormField(
+                    controller: notasController,
+                    decoration: const InputDecoration(
+                      labelText: 'Notas (Opcional)',
+                      border: OutlineInputBorder(),
+                    ),
+                    maxLines: 2,
+                  ),
+                  const SizedBox(height: 20),
+                  // WIDGETS DE FECHA (Selector y Limpiar)
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Expanded(
                         child: Text(
@@ -79,7 +89,7 @@ class _TareasScreenState extends State<TareasScreen> {
                       ),
                       TextButton.icon(
                         icon: const Icon(Icons.calendar_today),
-                        label: const Text('Seleccionar'),
+                        label: const Text('Cambiar'),
                         onPressed: () async {
                           final picked = await showDatePicker(
                             context: context,
@@ -95,9 +105,10 @@ class _TareasScreenState extends State<TareasScreen> {
                           }
                         },
                       ),
+                      // Botón para quitar la fecha
                       if (fechaSeleccionada != null)
                         IconButton(
-                          icon: const Icon(Icons.clear, color: Colors.red),
+                          icon: const Icon(Icons.close, color: Colors.red),
                           onPressed: () {
                             setState(() {
                               fechaSeleccionada = null;
@@ -110,14 +121,15 @@ class _TareasScreenState extends State<TareasScreen> {
                   ElevatedButton(
                     onPressed: () {
                       if (formKey.currentState!.validate()) {
+                        // RF11: Añadir tarea a través del Provider
                         tareasProvider.anadirTarea(
-                          tituloController.text,
+                          tituloController.text.trim(),
                           dueDate: fechaSeleccionada,
                         );
-                        Navigator.of(ctx).pop();
+                        Navigator.pop(context); // Cerrar el modal
                       }
                     },
-                    child: const Text('¡Añadir Actividad o trámite!'),
+                    child: const Text('Añadir Actividad o Trámite'),
                   ),
                   const SizedBox(height: 20),
                 ],
@@ -129,135 +141,138 @@ class _TareasScreenState extends State<TareasScreen> {
     );
   }
 
+  // --- WIDGET PRINCIPAL con TabBar ---
   @override
   Widget build(BuildContext context) {
-    final tareasProvider = context.watch<TareasProvider?>();
-    final authProvider = context.read<AuthProvider>();
-
-    if (tareasProvider == null) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    final userEmail = authProvider.user?.email ?? 'Usuario';
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Actividades o trámite de ${userEmail.split('@').first}'),
-        centerTitle: true,
-        automaticallyImplyLeading: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.exit_to_app),
-            onPressed: () => authProvider.signOut(),
+    // Implementamos DefaultTabController para manejar el estado de las pestañas
+    return DefaultTabController(
+      length: 2, // 'Tareas' y 'Notas'
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Deja de Procrastinar'),
+          actions: [
+            // Botón de Cerrar Sesión (RF4)
+            IconButton(
+              icon: const Icon(Icons.logout),
+              onPressed: () {
+                Provider.of<AuthProvider>(context, listen: false).signOut();
+              },
+              tooltip: 'Cerrar Sesión',
+            ),
+          ],
+          // Agregamos la TabBar en la parte inferior del AppBar
+          bottom: const TabBar(
+            tabs: [
+              Tab(icon: Icon(Icons.list_alt), text: 'Tareas'),
+              Tab(icon: Icon(Icons.note_alt), text: 'Notas'),
+            ],
           ),
-        ],
+        ),
+        // TabBarView para el contenido de cada pestaña
+        body: TabBarView(
+          children: [
+            // Pestaña 1: TAREAS (Contenido principal de la aplicación)
+            _buildTareasList(context),
+
+            // Pestaña 2: NOTAS
+            const NotasScreen(),
+          ],
+        ),
+        // FAB condicional: solo visible en la pestaña de Tareas
+        floatingActionButton: Builder(
+          builder: (context) {
+            final tabController = DefaultTabController.of(context);
+            // Solo mostramos el FAB si la pestaña activa es la de Tareas (índice 0)
+            if (tabController.index == 0) {
+              return NewTaskFab(
+                onPressed: () => _mostrarFormularioNuevaTarea(context),
+              );
+            }
+            return const SizedBox.shrink(); // Ocultar en la pestaña de Notas
+          },
+        ),
       ),
-      body: Column(
-        children: [
-          SearchField(
-            onChanged: (value) =>
-                tareasProvider.actualizarBusqueda(value), // RF8
-          ),
-          FilterChips(
+    );
+  }
+
+  // --- FUNCIÓN PRIVADA PARA CONSTRUIR LA LISTA DE TAREAS ---
+  Widget _buildTareasList(BuildContext context) {
+    final tareasProvider = Provider.of<TareasProvider>(context);
+    final tareas = tareasProvider.tareasFiltradas;
+
+    return Column(
+      children: [
+        // RF8: Búsqueda
+        SearchField(
+          onChanged: tareasProvider.actualizarBusqueda,
+        ),
+        // RF9: Filtros
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: FilterChips(
             filtroActivo: tareasProvider.filtroActivo,
-            onFilterChanged: (filtro) =>
-                tareasProvider.cambiarFiltro(filtro), // RF9
+            onFilterChanged: tareasProvider.cambiarFiltro,
           ),
-          Expanded(
-            child: tareasProvider.tareasFiltradas.isEmpty
-                ? const EmptyState()
-                : ListView.builder(
-                    itemCount: tareasProvider.tareasFiltradas.length,
-                    itemBuilder: (context, index) {
-                      final tarea = tareasProvider.tareasFiltradas[index];
+        ),
+        const SizedBox(height: 10),
+        // RF6: Lista o EmptyState
+        Expanded(
+          child: tareas.isEmpty
+              ? const EmptyState()
+              : ListView.builder(
+                  itemCount: tareas.length,
+                  itemBuilder: (context, index) {
+                    final tarea = tareas[index];
 
-                      // RF12: Implementación de Eliminación con Dismissible
-                      return Dismissible(
-                        key: ValueKey(tarea.id ?? UniqueKey()),
+                    // RF12: Eliminación con Deshacer
+                    return Dismissible(
+                      key: ValueKey(tarea.id),
 
-                        // 1. Confirmación de Eliminación
-                        confirmDismiss: (direction) async {
-                          return await showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return AlertDialog(
-                                title: const Text("Confirmar Eliminación"),
-                                content: Text(
-                                    "¿Estás seguro de que quieres eliminar la Actividad o Trámite '${tarea.title}'?"),
-                                actions: <Widget>[
-                                  TextButton(
-                                    onPressed: () =>
-                                        Navigator.of(context).pop(false),
-                                    child: const Text("CANCELAR"),
-                                  ),
-                                  TextButton(
-                                    onPressed: () =>
-                                        Navigator.of(context).pop(true),
-                                    child: const Text("ELIMINAR",
-                                        style: TextStyle(color: Colors.red)),
-                                  ),
-                                ],
-                              );
-                            },
-                          );
-                        },
+                      // CORRECCIÓN FINAL: onDismissed es ahora asíncrona
+                      onDismissed: (direction) async {
+                        final tareaEliminada = tarea;
 
-                        // 2. Eliminación y Snackbar (Undo)
-                        onDismissed: (direction) async {
-                          final tareaEliminada = tarea;
+                        // Llamamos al método asíncrono y esperamos su resultado
+                        // Esto soluciona el error de "Future<Tarea>"
+                        await tareasProvider.eliminarTarea(tareaEliminada);
 
-                          // **SOLUCIÓN FINAL**
-                          // 1. Capturamos el BuildContext antes del await
-                          final scaffoldContext = context;
-
-                          await tareasProvider.eliminarTarea(tareaEliminada);
-
-                          // 2. Verificamos mounted antes de usar el contexto
-                          if (!mounted) return;
-
-                          // 3. Usamos la referencia capturada (scaffoldContext)
-                          ScaffoldMessenger.of(scaffoldContext).showSnackBar(
-                            SnackBar(
-                              content:
-                                  Text('${tareaEliminada.title} (eliminada)'),
-                              action: SnackBarAction(
-                                label: 'DESHACER (Re-crear)',
-                                onPressed: () {
-                                  tareasProvider.reinsertarTarea(
-                                    index,
-                                    tareaEliminada,
-                                  );
-                                },
-                              ),
+                        // RF12: Mensaje de Deshacer
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                                'Se eliminó la tarea: ${tareaEliminada.title}'),
+                            action: SnackBarAction(
+                              label: 'DESHACER',
+                              onPressed: () {
+                                // Recreamos la tarea en Firebase (forma segura de "undo")
+                                tareasProvider.anadirTarea(
+                                  tareaEliminada.title,
+                                  dueDate: tareaEliminada.dueDate,
+                                );
+                              },
                             ),
-                          );
-                        },
+                          ),
+                        );
+                      },
 
-                        // 3. Estilo Visual del Swipe
-                        background: Container(
-                          color: Colors.red,
-                          alignment: Alignment.centerRight,
-                          padding: const EdgeInsets.only(right: 20.0),
-                          child: const Icon(Icons.delete, color: Colors.white),
-                        ),
-                        direction: DismissDirection.endToStart,
-
-                        // 4. Contenido de la Tarea
-                        child: TareaCard(
-                            tarea: tarea,
-                            // RF10: Toggle Estado (Método asíncrono)
-                            onCheckboxChanged: (_) async {
-                              await tareasProvider.toggleEstadoTarea(tarea);
-                            }),
-                      );
-                    },
-                  ),
-          ),
-        ],
-      ),
-      floatingActionButton: NewTaskFab(
-        onPressed: () => _mostrarFormularioNuevaTarea(context),
-      ),
+                      background: Container(
+                        color: Colors.red,
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.only(right: 20.0),
+                        child: const Icon(Icons.delete, color: Colors.white),
+                      ),
+                      direction: DismissDirection.endToStart,
+                      child: TareaCard(
+                        tarea: tarea,
+                        // RF10: Toggle Estado
+                        onCheckboxChanged: (_) =>
+                            tareasProvider.toggleEstadoTarea(tarea),
+                      ),
+                    );
+                  },
+                ),
+        ),
+      ],
     );
   }
 }

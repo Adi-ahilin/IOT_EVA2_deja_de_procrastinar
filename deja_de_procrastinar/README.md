@@ -1,31 +1,25 @@
-p# 🚀 IOT_EVA2_DEJA_DE_PROCRASTINAR
+# 🚀 IOT_EVA2_DEJA_DE_PROCRASTINAR
 
 ## Aplicación Móvil para IoT: Gestor de Actividades y Trámites
 
-Este proyecto es la evaluación sumativa del módulo **Aplicaciones Móviles para IoT**. Se desarrolla una aplicación Flutter funcional que implementa la **autenticación** y la **persistencia de datos en la nube**, simulando un gestor de tareas diarias para el usuario final.
+Este proyecto es la evaluación sumativa del módulo **Aplicaciones Móviles para IoT**. Implementa una aplicación Flutter funcional para la gestión de tareas diarias, destacando la **Autenticación** y **Persistencia de Datos en la Nube** (Firebase).
 
 ## 1. Características Principales y Cumplimiento de Requisitos
 
-La aplicación demuestra el cumplimiento de los siguientes requisitos técnicos y funcionales de la evaluación:
-
 | Característica | Detalle Funcionalidad | Requisito Clave |
 | :--- | :--- | :--- |
-| **Login y Autenticación** | Implementación de una pantalla de login que valida el formato de correo y la longitud mínima de contraseña. Autenticación real vía **Firebase Auth**. | RF1, RF2, RF3 |
-| **Persistencia de Datos** | Manejo de tareas (Actividades o Trámites) a través de un **CRUD asíncrono completo** conectado a **Firebase Firestore**. | RF10, RF11, RF12 |
-| **Gestión de Listados** | La pantalla principal muestra un listado ordenado por la fecha de entrega y soporta **búsqueda** y **filtros** por estado. | RF8, RF9, RF13 |
+| **Login y Autenticación** | Login con validación de formato/longitud. Autenticación real vía **Firebase Auth**. | RF1, RF2, RF3 |
+| **Persistencia Completa** | Manejo del **CRUD asíncrono** (Creación, Lectura, Actualización/Toggle, Eliminación) conectado a **Firebase Firestore**. | RF10, RF11, RF12 |
+| **Gestión de Listados** | Listado ordenado por la fecha de entrega y soporte para **búsqueda** y **filtros** por estado. | RF8, RF9, RF13 |
 | **Estados Derivados** | Lógica para mostrar estilos visuales según el estado: **Pendiente**, **Completada** (tachado), y **Atrasada/Vencida** (si la fecha pasó sin completar). | RF7 |
-| **Eliminación Segura** | Implementación del *swipe* (`Dismissible`) que incluye un **Snackbar** con la opción **"DESHACER"** (re-creando el registro en Firestore). | RF12 |
+| **Optimización de Consulta** | **Índice Compuesto** creado en Firestore para optimizar las consultas de filtrado y orden de la lista principal. | Requisito de Índice |
+| **Diseño Tabulado** | Interfaz organizada con navegación por pestañas (**Tareas** y **Notas**). | Diseño Tabular |
 
 ## 2. 🛠️ Arquitectura y Tecnologías Clave
 
-La arquitectura del proyecto está diseñada para la escalabilidad, demostrando la interconexión con servicios en la nube:
-
-* **Tecnologías IOT/Nube:**
-    * **Firebase Firestore:** Persistencia de datos (lectura vía `Stream`).
-    * **Firebase Authentication:** Servicio de control de acceso.
-* **Gestión de Estado y Arquitectura:**
-    * **Provider:** Utilizado con `ChangeNotifier` y `ChangeNotifierProxyProvider` para la inyección de dependencias (`Auth` y `Tareas`).
-    * **Repository Pattern:** El código está organizado en `repositories` (conexión a Firebase), consumidos por los `providers` (lógica de negocio).
+* **Tecnologías IOT/Nube:** Firebase Firestore y Firebase Authentication.
+* **Gestión de Estado:** **Provider** (`ChangeNotifierProxyProvider`) para inyectar dependencias (`Auth` y `Tareas`).
+* **Patrón:** **Repository Pattern** para aislar la lógica de acceso a datos de la aplicación.
 
 ## 3. 🔑 Guía de Ejecución y Credenciales de Prueba
 
@@ -41,12 +35,24 @@ La arquitectura del proyecto está diseñada para la escalabilidad, demostrando 
 
 ### B. Credenciales para la Revisión (¡CRUCIAL!)
 
-Para acceder y validar todas las funcionalidades (CRUD, Filtros, Estados), el revisor debe utilizar las siguientes credenciales, ya registradas en el servicio **Firebase Authentication** del proyecto:
+Para acceder y validar la funcionalidad, el revisor debe utilizar las siguientes credenciales de prueba:
 
-| Campo | Valor | Propósito |
-| :--- | :--- | :--- |
-| **Correo Electrónico** | `test@gmail.com` | Usuario de prueba. |
-| **Contraseña** | **[TU_CONTRASEÑA_DE_6_CARACTERES_O_MÁS]** | *Se debe usar la contraseña establecida para este usuario en la consola de Firebase.* |
+| Campo | Valor |
+| :--- | :--- |
+| **Correo Electrónico** | `test@gmail.com` |
+| **Contraseña** | **[TU_CONTRASEÑA_DE_6_CARACTERES_O_MÁS]** |
+
+---
+
+## 4. Verificación de Requisitos (Pruebas Funcionales Clave)
+
+Utilice estas pruebas para confirmar el correcto funcionamiento de los servicios conectados:
+
+1.  **LOGIN (RF1):** Iniciar sesión con `test@gmail.com`.
+2.  **PERSISTENCIA (RF11):** Crear una nueva actividad. La tarea debe aparecer y guardarse en Firestore.
+3.  **ORDEN (RF13):** Verificar que las tareas se ordenen **ascendentemente por fecha**.
+4.  **TOGGLE (RF10):** Marcar una tarea como hecha y verificar que el cambio de estado se guarde en Firebase.
+5.  **ELIMINACIÓN (RF12):** Deslizar una tarea. Verificar que la opción **DESHACER** funcione, re-creando el registro en la base de datos.
 
 ---
 ---
